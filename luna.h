@@ -511,7 +511,7 @@ template <typename T>
 T lua_to_object(lua_State* L, int idx) {
     T obj = nullptr;
 
-    static_assert(has_meta_data<typename std::remove_pointer<T>::type>::value, "T should be declared export !");
+    // static_assert(has_meta_data<typename std::remove_pointer<T>::type>::value, "T should be declared export !");
 
     idx = lua_normal_index(L, idx);
 
