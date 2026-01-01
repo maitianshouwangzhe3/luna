@@ -7,15 +7,13 @@
 
 #include <assert.h>
 #include <string.h>
-#include <cstdint>
 #include <string>
 #include <functional>
 #include <tuple>
 #include <type_traits>
 #include <unordered_map>
 #include <utility>
-
-#include "boost/any.hpp"
+#include <variant>
 
 extern "C" {
 #include "lua.h"
@@ -23,7 +21,22 @@ extern "C" {
 #include "lauxlib.h"
 }
 
-using lua_table_object = std::unordered_map<std::string, boost::any>;
+enum class lua_value_type {
+    LUA_OBJECT_TYPE_NONE = 0,
+    LUA_OBJECT_TYPE_TABLE,
+    LUA_OBJECT_TYPE_USERDATA,
+    LUA_OBJECT_TYPE_FUNCTION,
+    LUA_OBJECT_TYPE_LIGHTUSERDATA,
+    LUA_OBJECT_TYPE_STRING,
+    LUA_OBJECT_TYPE_LONGLONG,
+    LUA_OBJECT_TYPE_DOUBLE,
+    LUA_OBJECT_TYPE_BOOLEAN,
+    LUA_OBJECT_TYPE_UNKNOWN,
+};
+
+struct lua_value;
+
+using lua_table_object = std::unordered_map<std::string, lua_value>;
 lua_table_object lua_table_to_object(lua_State* L, int idx);
 
 template <typename T> void lua_push_object(lua_State* L, T obj);
@@ -661,4 +674,47 @@ public:
 private:
     int m_top = 0;
     lua_State* m_lvm = nullptr;
+};
+
+struct lua_value {
+    using Value = std::variant<
+        std::monostate,   // 表示 nil
+        long long,
+        bool,
+        double,           // Lua number（也可用 float）
+        std::string,
+        lua_table_object          // 嵌套 table
+    >;
+
+    Value data;
+    lua_value_type type;
+
+    DECLARE_LUA_CLASS(lua_value)
+
+    // 构造函数
+    lua_value() : data(std::monostate{}) {}
+    lua_value(std::monostate) : data(std::monostate{}) {}
+    lua_value(bool b) : data(b) {}
+
+    lua_value(long long l) : data(l) {}
+
+    lua_value(double d) : data(d) {}
+    lua_value(const char* s) : data(std::string(s)) {}
+    lua_value(const std::string& s) : data(s) {}
+    lua_value(lua_table_object t) : data(std::move(t)) {}
+
+    // 类型查询
+    bool is_nil() const { return std::holds_alternative<std::monostate>(data); }
+    bool is_bool() const { return std::holds_alternative<bool>(data); }
+    bool is_double() const { return std::holds_alternative<double>(data); }
+    bool is_long() const { return std::holds_alternative<long long>(data); }
+    bool is_string() const { return std::holds_alternative<std::string>(data); }
+    bool is_table() const { return std::holds_alternative<lua_table_object>(data); }
+
+    // 获取值（可加异常处理）
+    template<typename T>
+    T& as() { return std::get<T>(data); }
+
+    template<typename T>
+    const T& as() const { return std::get<T>(data); }
 };

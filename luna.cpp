@@ -23,6 +23,9 @@ struct luna_function_wapper final {
 LUA_EXPORT_CLASS_BEGIN(luna_function_wapper)
 LUA_EXPORT_CLASS_END()
 
+LUA_EXPORT_CLASS_BEGIN(lua_value)
+LUA_EXPORT_CLASS_END()
+
 static int lua_global_bridge(lua_State* L) {
     auto* wapper  = lua_to_object<luna_function_wapper*>(L, lua_upvalueindex(1));
     if (wapper != nullptr) {
@@ -110,48 +113,68 @@ void _lua_del_fence(lua_State* L, const char fence[]) {
 }
 
 lua_table_object lua_table_to_object(lua_State* L, int idx) {
-    std::unordered_map<std::string, boost::any> result;
+    std::unordered_map<std::string, lua_value> result;
 
     luaL_checktype(L, idx, LUA_TTABLE);
-
+    int absIndex = lua_absindex(L, idx);
     lua_pushnil(L);
-    while (lua_next(L, idx) != 0) {
+    while (lua_next(L, absIndex) != 0) {
         // 只处理字符串键
         if (lua_type(L, -2) == LUA_TSTRING) {
             std::string key = lua_tostring(L, -2);
-
-            boost::any value;
             switch (lua_type(L, -1)) {
-                case LUA_TSTRING:
-                    value = std::string(lua_tostring(L, -1));
+                case LUA_TSTRING: {
+                    std::string value = std::string(lua_tostring(L, -1));
+                    lua_value val(value);
+                    val.type = lua_value_type::LUA_OBJECT_TYPE_STRING;
+                    result[key] = std::move(val);
+                }
                     break;
-                case LUA_TNUMBER:
+                case LUA_TNUMBER: {
                     if (lua_isinteger(L, -1)) {
-                        value = static_cast<long long>(lua_tointeger(L, -1));
+                        long long value = static_cast<long long>(lua_tointeger(L, -1));
+                        lua_value val(value);
+                        val.type = lua_value_type::LUA_OBJECT_TYPE_LONGLONG;
+                        result[key] = std::move(val);
                     } else {
-                        value = static_cast<double>(lua_tonumber(L, -1));
+                        double value = static_cast<double>(lua_tonumber(L, -1));
+                        lua_value val(value);
+                        val.type = lua_value_type::LUA_OBJECT_TYPE_DOUBLE;
+                        result[key] = std::move(val);
                     }
+                }
                     break;
-                case LUA_TBOOLEAN:
-                    value = static_cast<bool>(lua_toboolean(L, -1));
+                case LUA_TBOOLEAN: {
+                    bool value = static_cast<bool>(lua_toboolean(L, -1));
+                    lua_value val(value);
+                    val.type = lua_value_type::LUA_OBJECT_TYPE_BOOLEAN;
+                    result[key] = std::move(val);
+                }
                     break;
-                case LUA_TNIL:
-                    value = "nil";
+                case LUA_TNIL: {
+                    lua_value val;
+                    val.type = lua_value_type::LUA_OBJECT_TYPE_NONE;
+                    result[key] = std::move(val);
+                }
                     break;
-                case LUA_TTABLE:
+                case LUA_TTABLE: {
                     // 递归处理嵌套 table
-                    value = lua_table_to_object(L, -1);
+                    lua_table_object value = lua_table_to_object(L, -1);
+                    lua_value val(value);
+                    val.type = lua_value_type::LUA_OBJECT_TYPE_TABLE;
+                    result[key] = std::move(val);
+                }
                     break;
-                default:
+                default: {
+                    lua_value val;
+                    val.type = lua_value_type::LUA_OBJECT_TYPE_NONE;
+                    result[key] = std::move(val);
+                }
                     break;
-            }
-
-            if (!value.empty()) {
-                result[key] = value;
             }
         }
 
-        lua_pop(L, 1);  // remove value, keep key for next iteration
+        lua_pop(L, 1);
     }
 
     return result;
