@@ -45,12 +45,12 @@ T lua_to_native(lua_State* L, int i) {
         if constexpr (std::is_same_v<type, const char>) {
             return lua_tostring(L, i);
         } else {
-            return lua_table_to_object(L, i); 
+            return lua_to_object<T>(L, i); 
         }
     } else {
         // unsupported type
         if (lua_istable(L, i)) {
-            return nullptr;
+            return lua_table_to_object(L, i);
         }
     }
 }
