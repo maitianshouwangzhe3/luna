@@ -41,3 +41,4 @@
 *.idb
 *.log
 .DS_Store
+*.d

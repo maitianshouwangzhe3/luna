@@ -12,12 +12,19 @@
 #include <functional>
 #include <tuple>
 #include <type_traits>
+#include <unordered_map>
 #include <utility>
+
+#include "boost/any.hpp"
+
 extern "C" {
 #include "lua.h"
 #include "lualib.h"
 #include "lauxlib.h"
 }
+
+using lua_table_object = std::unordered_map<std::string, boost::any>;
+lua_table_object lua_table_to_object(lua_State* L, int idx);
 
 template <typename T> void lua_push_object(lua_State* L, T obj);
 template <typename T> T lua_to_object(lua_State* L, int idx);
@@ -38,10 +45,13 @@ T lua_to_native(lua_State* L, int i) {
         if constexpr (std::is_same_v<type, const char>) {
             return lua_tostring(L, i);
         } else {
-            return lua_to_object<T>(L, i); 
+            return lua_table_to_object(L, i); 
         }
     } else {
         // unsupported type
+        if (lua_istable(L, i)) {
+            return nullptr;
+        }
     }
 }
 
@@ -511,7 +521,7 @@ template <typename T>
 T lua_to_object(lua_State* L, int idx) {
     T obj = nullptr;
 
-    // static_assert(has_meta_data<typename std::remove_pointer<T>::type>::value, "T should be declared export !");
+    static_assert(has_meta_data<typename std::remove_pointer<T>::type>::value, "T should be declared export !");
 
     idx = lua_normal_index(L, idx);
 

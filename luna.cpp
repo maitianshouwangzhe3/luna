@@ -10,7 +10,6 @@
 #endif
 #include <stdio.h>
 #include <signal.h>
-#include <map>
 #include <string>
 #include <algorithm>
 #include "luna.h"
@@ -110,3 +109,50 @@ void _lua_del_fence(lua_State* L, const char fence[]) {
     lua_pop(L, 1);  
 }
 
+lua_table_object lua_table_to_object(lua_State* L, int idx) {
+    std::unordered_map<std::string, boost::any> result;
+
+    luaL_checktype(L, idx, LUA_TTABLE);
+
+    lua_pushnil(L);
+    while (lua_next(L, idx) != 0) {
+        // 只处理字符串键
+        if (lua_type(L, -2) == LUA_TSTRING) {
+            std::string key = lua_tostring(L, -2);
+
+            boost::any value;
+            switch (lua_type(L, -1)) {
+                case LUA_TSTRING:
+                    value = std::string(lua_tostring(L, -1));
+                    break;
+                case LUA_TNUMBER:
+                    if (lua_isinteger(L, -1)) {
+                        value = static_cast<long long>(lua_tointeger(L, -1));
+                    } else {
+                        value = static_cast<double>(lua_tonumber(L, -1));
+                    }
+                    break;
+                case LUA_TBOOLEAN:
+                    value = static_cast<bool>(lua_toboolean(L, -1));
+                    break;
+                case LUA_TNIL:
+                    value = "nil";
+                    break;
+                case LUA_TTABLE:
+                    // 递归处理嵌套 table
+                    value = lua_table_to_object(L, -1);
+                    break;
+                default:
+                    break;
+            }
+
+            if (!value.empty()) {
+                result[key] = value;
+            }
+        }
+
+        lua_pop(L, 1);  // remove value, keep key for next iteration
+    }
+
+    return result;
+}
