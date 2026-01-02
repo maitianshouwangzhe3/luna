@@ -60,11 +60,13 @@ T lua_to_native(lua_State* L, int i) {
         } else {
             return lua_to_object<T>(L, i); 
         }
-    } else {
-        // unsupported type
+    } else if constexpr (std::is_same_v<T, lua_table_object>) {
         if (lua_istable(L, i)) {
             return lua_table_to_object(L, i);
         }
+    } 
+    else {
+        // unsupported type
     }
 }
 
