@@ -697,16 +697,16 @@ struct lua_value {
     DECLARE_LUA_CLASS(lua_value)
 
     // 构造函数
-    lua_value() : data(std::monostate{}) {}
-    lua_value(std::monostate) : data(std::monostate{}) {}
-    lua_value(bool b) : data(b) {}
+    lua_value() : data(std::monostate{}), type(lua_value_type::LUA_OBJECT_TYPE_NONE) {}
+    lua_value(std::monostate) : data(std::monostate{}), type(lua_value_type::LUA_OBJECT_TYPE_NONE) {}
+    lua_value(bool b) : data(b), type(lua_value_type::LUA_OBJECT_TYPE_BOOLEAN) {}
 
-    lua_value(long long l) : data(l) {}
+    lua_value(long long l) : data(l), type(lua_value_type::LUA_OBJECT_TYPE_LONGLONG) {}
 
-    lua_value(double d) : data(d) {}
-    lua_value(const char* s) : data(std::string(s)) {}
-    lua_value(const std::string& s) : data(s) {}
-    lua_value(lua_table_object t) : data(std::move(t)) {}
+    lua_value(double d) : data(d), type(lua_value_type::LUA_OBJECT_TYPE_DOUBLE) {}
+    lua_value(const char* s) : data(std::string(s)), type(lua_value_type::LUA_OBJECT_TYPE_STRING) {}
+    lua_value(const std::string& s) : data(s), type(lua_value_type::LUA_OBJECT_TYPE_STRING) {}
+    lua_value(lua_table_object t) : data(std::move(t)), type(lua_value_type::LUA_OBJECT_TYPE_TABLE) {}
 
     // 类型查询
     bool is_nil() const { return std::holds_alternative<std::monostate>(data); }
