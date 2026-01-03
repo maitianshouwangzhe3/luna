@@ -3,6 +3,7 @@
 ** trumanzhao, 2016/06/18, trumanzhao@foxmail.com
 */
 
+#include <lua.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #ifdef __linux
@@ -178,4 +179,44 @@ lua_table_object lua_table_to_object(lua_State* L, int idx) {
     }
 
     return result;
+}
+
+void cpp_object_to_table(lua_State* L, const lua_table_object& obj) {
+    if (obj.empty() || obj.size() <= 0) {
+        lua_pushnil(L);
+        return;
+    }
+
+    lua_newtable(L);
+    for (auto& item : obj) {
+        lua_pushstring(L, item.first.data());
+        switch (item.second.type) {
+            case lua_value_type::LUA_OBJECT_TYPE_STRING: {
+                const std::string& val = item.second.as<std::string>();
+                lua_pushstring(L, val.data());
+            }
+            break;
+            case lua_value_type::LUA_OBJECT_TYPE_DOUBLE: {
+                lua_pushnumber(L, item.second.as<double>());
+            }
+            break;
+            case lua_value_type::LUA_OBJECT_TYPE_LONGLONG: {
+                lua_pushinteger(L, item.second.as<long long>());
+            }
+            break;
+            break;
+            case lua_value_type::LUA_OBJECT_TYPE_BOOLEAN: {
+                lua_pushboolean(L, item.second.as<bool>());
+            }
+            break;
+            case lua_value_type::LUA_OBJECT_TYPE_NONE: {
+                lua_pushnil(L);
+            }
+            break;
+            default:
+                lua_pushnil(L);
+            break;
+        }
+        lua_settable(L, -3);
+    }
 }

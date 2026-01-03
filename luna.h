@@ -38,6 +38,7 @@ struct lua_value;
 
 using lua_table_object = std::unordered_map<std::string, lua_value>;
 lua_table_object lua_table_to_object(lua_State* L, int idx);
+void cpp_object_to_table(lua_State* L, const lua_table_object& obj);
 
 template <typename T> void lua_push_object(lua_State* L, T obj);
 template <typename T> T lua_to_object(lua_State* L, int idx);
@@ -91,6 +92,8 @@ void native_to_lua(lua_State* L, T v) {
         } else {
             lua_push_object(L, v); 
         }
+    } else if constexpr (std::is_same_v<T, lua_table_object>) {
+        cpp_object_to_table(L, v);
     } else {
         // unsupported type
         lua_pushnil(L);
