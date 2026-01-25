@@ -16,12 +16,12 @@ set(SOURCES
 
 if(BUILD_STATIC_LIBS)
     add_library(luna_static STATIC ${SOURCES})
-    set_target_properties(luna_static PROPERTIES OUTPUT_NAME luna PREFIX "lib")
+    set_target_properties(luna_static PROPERTIES OUTPUT_NAME luna PREFIX "")
 endif()
 
 if(BUILD_SHARED_LIBS)
     add_library(luna_shared SHARED ${SOURCES})
-    set_target_properties(luna_shared PROPERTIES OUTPUT_NAME luna PREFIX "lib")
+    set_target_properties(luna_shared PROPERTIES OUTPUT_NAME luna PREFIX "")
 endif()
 
 include(GNUInstallDirs)
