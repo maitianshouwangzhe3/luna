@@ -12,11 +12,12 @@
 #include <winsock2.h>
 #endif
 extern "C" {
+#include "lz4.h"
 #include "lua.h"
 #include "lualib.h"
 #include "lauxlib.h"
 }
-#include "lz4.h"
+
 #include "lua_archiver.h"
 #include "var_int.h"
 

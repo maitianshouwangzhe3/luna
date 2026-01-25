@@ -14,6 +14,7 @@
 #include <unordered_map>
 #include <utility>
 #include <variant>
+#include <functional>
 
 extern "C" {
 #include "lua.h"
@@ -65,8 +66,9 @@ T lua_to_native(lua_State* L, int i) {
         if (lua_istable(L, i)) {
             return lua_table_to_object(L, i);
         }
-    } 
-    else {
+    } else if constexpr (std::is_same_v<T, std::function<void(lua_State* L)>>) {
+        
+    } else {
         // unsupported type
     }
 }
