@@ -16,7 +16,7 @@ set(SOURCES
 
 if(BUILD_STATIC_LIBS)
     add_library(luna_static STATIC ${SOURCES})
-    set_target_properties(luna_static PROPERTIES OUTPUT_NAME luna PREFIX "")
+    set_target_properties(luna_static PROPERTIES OUTPUT_NAME libluna PREFIX "")
 endif()
 
 if(BUILD_SHARED_LIBS)
