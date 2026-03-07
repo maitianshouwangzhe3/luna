@@ -59,6 +59,8 @@ T lua_to_native(lua_State* L, int i) {
         using type = std::remove_volatile_t<std::remove_pointer_t<T>>;
         if constexpr (std::is_same_v<type, const char>) {
             return lua_tostring(L, i);
+        } else if constexpr (std::is_same_v<type, const void>) {
+            return lua_touserdata(L, i);
         } else {
             return lua_to_object<T>(L, i); 
         }
@@ -91,8 +93,10 @@ void native_to_lua(lua_State* L, T v) {
             } else {
                 lua_pushnil(L);
             }
+        } else if constexpr (std::is_same_v<type, void>) {
+            lua_pushlightuserdata(L, v);
         } else {
-            lua_push_object(L, v); 
+            lua_push_object(L, v);
         }
     } else if constexpr (std::is_same_v<T, lua_table_object>) {
         cpp_object_to_table(L, v);
