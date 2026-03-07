@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.14)
 
-project(luna CXX)
+project(luna C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -10,8 +10,8 @@ option(BUILD_SHARED_LIBS "Build shared library version" ON)
 set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/lua_archiver.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/luna.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/lz4.c
     ${CMAKE_CURRENT_SOURCE_DIR}/var_int.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/lz4.c
 )
 
 if(BUILD_STATIC_LIBS)
@@ -22,6 +22,7 @@ endif()
 if(BUILD_SHARED_LIBS)
     add_library(luna_shared SHARED ${SOURCES})
     set_target_properties(luna_shared PROPERTIES OUTPUT_NAME luna PREFIX "")
+    set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/lz4.c PROPERTIES LANGUAGE C)
 endif()
 
 include(GNUInstallDirs)
@@ -38,5 +39,6 @@ install(FILES
     luna.h
     lua_archiver.h
     var_int.h
+    lz4.h
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
