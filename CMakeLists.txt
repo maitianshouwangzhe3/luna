@@ -14,6 +14,8 @@ set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/lz4.c
 )
 
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/deps/lua)
+
 if(BUILD_STATIC_LIBS)
     add_library(luna_static STATIC ${SOURCES})
     set_target_properties(luna_static PROPERTIES OUTPUT_NAME libluna PREFIX "")

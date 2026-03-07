@@ -13,10 +13,9 @@
 #endif
 extern "C" {
 #include "lz4.h"
-#include "lua.h"
-#include "lualib.h"
-#include "lauxlib.h"
 }
+
+#include "lua.hpp"
 
 #include "lua_archiver.h"
 #include "var_int.h"

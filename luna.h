@@ -16,11 +16,7 @@
 #include <variant>
 #include <functional>
 
-extern "C" {
-#include "lua.h"
-#include "lualib.h"
-#include "lauxlib.h"
-}
+#include "lua.hpp"
 
 enum class lua_value_type {
     LUA_OBJECT_TYPE_NONE = 0,
