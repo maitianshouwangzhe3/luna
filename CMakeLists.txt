@@ -15,16 +15,25 @@ set(SOURCES
 )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/deps/lua)
+link_directories(${CMAKE_CURRENT_SOURCE_DIR}/deps/lua)
+set(LUA_LIB liblua)
 
 if(BUILD_STATIC_LIBS)
     add_library(luna_static STATIC ${SOURCES})
     set_target_properties(luna_static PROPERTIES OUTPUT_NAME libluna PREFIX "")
+    if(WIN32)
+        target_link_libraries(luna_static PRIVATE ${LUA_LIB})
+    endif()
 endif()
 
 if(BUILD_SHARED_LIBS)
     add_library(luna_shared SHARED ${SOURCES})
     set_target_properties(luna_shared PROPERTIES OUTPUT_NAME luna PREFIX "")
     set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/lz4.c PROPERTIES LANGUAGE C)
+    
+    if(WIN32)
+        target_link_libraries(luna_shared PRIVATE ${LUA_LIB})
+    endif()
 endif()
 
 include(GNUInstallDirs)
