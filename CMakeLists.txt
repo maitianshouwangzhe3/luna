@@ -4,7 +4,7 @@ project(luna C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 
-option(BUILD_STATIC_LIBS "Build static library version" ON)
+option(BUILD_STATIC_LIBS "Build static library version" OFF)
 option(BUILD_SHARED_LIBS "Build shared library version" ON)
 
 set(SOURCES
